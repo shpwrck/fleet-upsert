@@ -1,3 +1,4 @@
+
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -56,6 +57,19 @@ roleRef:
   kind: ClusterRole
   name: cattle-admin
   apiGroup: rbac.authorization.k8s.io
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cattle-credentials-d7b2faa
+  namespace: cattle-system
+type: Opaque
+data:
+  url: "aHR0cHM6Ly9za3J6eXBlay51cw=="
+  token: "azg3Nzgyd3NmOWJ3YjhkanJjZnRrem5idHBrZmp6NzZrbGRkcGY4YnRyczk1aGI4N3Y1NWp0"
+  namespace: ""
 
 ---
 
@@ -162,9 +176,18 @@ spec:
           - name: CATTLE_CLUSTER_REGISTRY
             value: ""
           image: rancher/rancher-agent:v2.5.9
+          volumeMounts:
+          - name: cattle-credentials
+            mountPath: /cattle-credentials
+            readOnly: true
           readinessProbe:
             initialDelaySeconds: 2
             periodSeconds: 5
             httpGet:
               path: /health
               port: 8080
+      volumes:
+      - name: cattle-credentials
+        secret:
+          secretName: cattle-credentials-d7b2faa
+          defaultMode: 320
