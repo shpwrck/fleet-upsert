@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# Turn up services
+echo 'FCGI_CHILDREN="5"' >> /etc/default/fcgiwrap
+service fcgiwrap start
+nginx
