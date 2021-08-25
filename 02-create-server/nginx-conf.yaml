@@ -94,4 +94,4 @@ data:
 kind: ConfigMap
 metadata:
   name: nginx-conf
-  namespace: default
+  namespace: fleet-default
