@@ -1,0 +1,20 @@
+apiVersion: management.cattle.io/v3
+kind: Cluster
+metadata:
+  name: cluster-c1fefb943b37
+spec:
+  agentImageOverride: ""
+  answers: {}
+  description: ""
+  desiredAgentImage: ""
+  desiredAuthImage: ""
+  displayName: cluster-c1fefb943b37
+  dockerRootDir: /var/lib/docker
+  enableClusterAlerting: false
+  enableClusterMonitoring: false
+  enableNetworkPolicy: false
+  fleetWorkspaceName: fleet-default
+  internal: false
+  localClusterAuthEndpoint:
+    enabled: false
+  windowsPreferedCluster: false

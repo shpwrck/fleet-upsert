@@ -1,7 +1,16 @@
 # Fleet Upsert
 
-1. Create Fleet Cluster with annotation
-2. Create Imported Cluster
-3. Create Git Service with imported cluster's manifest
-4. Create Git Repo with Git Service and Fleet Cluster
-5. Clean Up Resources upon completion.
+## Prerequisites
+
+1. Create Fleet Workspace
+1. Create Cluster Registration Token
+1. Register Clusters
+
+## Controller
+
+1. Install
+1. Create Rancher Cluster for each Fleet Cluster
+1. Create Import Repository
+1. Populate Import Repository with Cluster Registration Token and content
+1. Create Git Repo
+1. Delete original Fleet Cluster
