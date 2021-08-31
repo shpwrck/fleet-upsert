@@ -1,0 +1,15 @@
+apiVersion: fleet.cattle.io/v1alpha1
+kind: GitRepo
+metadata:
+  name: cluster-a6e9a5b8bb98
+  namespace: fleet-default
+spec:
+  branch: master
+  insecureSkipTLSVerify: false
+  paths: []
+  repo: http://gitserver.fleet-upsert.svc/register
+  targets:
+  - clusterSelector:
+      matchLabels:
+        fleet.cattle.io/cluster: cluster-a6e9a5b8bb98
+type: fleet.cattle.io.gitrepo

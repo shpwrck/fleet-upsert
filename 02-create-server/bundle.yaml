@@ -1,0 +1,206 @@
+apiVersion: fleet.cattle.io/v1alpha1
+kind: Bundle
+metadata:
+  name: import-upsert
+  namespace: fleet-default
+spec:
+  defaultNamespace: fleet-system
+  helm:
+    takeOwnership: true
+  resources:
+  - content: |
+      ---
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: proxy-clusterrole-kubeapiserver
+      rules:
+      - apiGroups: [""]
+        resources:
+        - nodes/metrics
+        - nodes/proxy
+        - nodes/stats
+        - nodes/log
+        - nodes/spec
+        verbs: ["get", "list", "watch", "create"]
+      ---
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: proxy-role-binding-kubernetes-master
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: proxy-clusterrole-kubeapiserver
+      subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: User
+        name: kube-apiserver
+      ---
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: cattle-system
+      
+      ---
+      
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: cattle
+        namespace: cattle-system
+      
+      ---
+      
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: cattle-admin-binding
+        namespace: cattle-system
+        labels:
+          cattle.io/creator: "norman"
+      subjects:
+      - kind: ServiceAccount
+        name: cattle
+        namespace: cattle-system
+      roleRef:
+        kind: ClusterRole
+        name: cattle-admin
+        apiGroup: rbac.authorization.k8s.io
+      
+      ---
+      
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: cattle-credentials-4ee920e
+        namespace: cattle-system
+      type: Opaque
+      data:
+        url: "aHR0cHM6Ly9za3J6eXBlay51cw=="
+        token: "bG5idGJrNHhoOWN3dmhjNXhmejU3cnJiaHByZHd3YzVjdmw2ZzV3cTIyeng3OTRzZ3drNGQ0"
+        namespace: ""
+      
+      ---
+      
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: cattle-admin
+        labels:
+          cattle.io/creator: "norman"
+      rules:
+      - apiGroups:
+        - '*'
+        resources:
+        - '*'
+        verbs:
+        - '*'
+      - nonResourceURLs:
+        - '*'
+        verbs:
+        - '*'
+      
+      ---
+      
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: cattle-cluster-agent
+        namespace: cattle-system
+      spec:
+        selector:
+          matchLabels:
+            app: cattle-cluster-agent
+        template:
+          metadata:
+            labels:
+              app: cattle-cluster-agent
+          spec:
+            affinity:
+              nodeAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                    - matchExpressions:
+                      - key: beta.kubernetes.io/os
+                        operator: NotIn
+                        values:
+                          - windows
+                preferredDuringSchedulingIgnoredDuringExecution:
+                - preference:
+                    matchExpressions:
+                    - key: node-role.kubernetes.io/controlplane
+                      operator: In
+                      values:
+                      - "true"
+                  weight: 100
+                - preference:
+                    matchExpressions:
+                    - key: node-role.kubernetes.io/control-plane
+                      operator: In
+                      values:
+                      - "true"
+                  weight: 100
+                - preference:
+                    matchExpressions:
+                    - key: node-role.kubernetes.io/master
+                      operator: In
+                      values:
+                      - "true"
+                  weight: 100
+                - preference:
+                    matchExpressions:
+                    - key: cattle.io/cluster-agent
+                      operator: In
+                      values:
+                      - "true"
+                  weight: 1
+            serviceAccountName: cattle
+            tolerations:
+            # No taints or no controlplane nodes found, added defaults
+            - effect: NoSchedule
+              key: node-role.kubernetes.io/controlplane
+              value: "true"
+            - effect: NoSchedule
+              key: "node-role.kubernetes.io/control-plane"
+              operator: "Exists"
+            - effect: NoSchedule
+              key: "node-role.kubernetes.io/master"
+              operator: "Exists"
+            containers:
+              - name: cluster-register
+                imagePullPolicy: IfNotPresent
+                env:
+                - name: CATTLE_FEATURES
+                  value: ""
+                - name: CATTLE_IS_RKE
+                  value: "false"
+                - name: CATTLE_SERVER
+                  value: "https://skrzypek.us"
+                - name: CATTLE_CA_CHECKSUM
+                  value: ""
+                - name: CATTLE_CLUSTER
+                  value: "true"
+                - name: CATTLE_K8S_MANAGED
+                  value: "true"
+                - name: CATTLE_CLUSTER_REGISTRY
+                  value: ""
+                image: rancher/rancher-agent:v2.5.9
+                volumeMounts:
+                - name: cattle-credentials
+                  mountPath: /cattle-credentials
+                  readOnly: true
+                readinessProbe:
+                  initialDelaySeconds: 2
+                  periodSeconds: 5
+                  httpGet:
+                    path: /health
+                    port: 8080
+            volumes:
+            - name: cattle-credentials
+              secret:
+                secretName: cattle-credentials-4ee920e
+                defaultMode: 320
+    name: import.yaml
+  targets:
+  - clusterName: cluster-0963c2add020

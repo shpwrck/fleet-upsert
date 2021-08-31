@@ -1,14 +1,14 @@
 apiVersion: management.cattle.io/v3
 kind: Cluster
 metadata:
-  name: cluster-c1fefb943b37
+  name: cluster-7e70404985ce-rancher
 spec:
   agentImageOverride: ""
   answers: {}
   description: ""
   desiredAgentImage: ""
   desiredAuthImage: ""
-  displayName: cluster-c1fefb943b37
+  displayName: cluster-7e70404985ce-rancher
   dockerRootDir: /var/lib/docker
   enableClusterAlerting: false
   enableClusterMonitoring: false

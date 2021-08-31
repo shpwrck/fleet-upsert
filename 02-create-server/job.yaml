@@ -1,0 +1,13 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: import
+spec:
+  template:
+    spec:
+      containers:
+      - name: kubectl
+        image: rancher/kubectl:v1.20.2
+        command: ["kubectl", "apply", "-f", "https://skrzypek.us/v3/import/kfqf49rh4mcprtrfq9wkbrnws6sdzpl795ct454xgrdjhb8hdkn5jl_c-75qnk.yaml"]
+      restartPolicy: Never
+  backoffLimit: 4
